@@ -85,14 +85,14 @@ class terminal_t:
 		curses.curs_set(0)
 
 		y, x = self.stdscr.getmaxyx()
-		subwin_x = x/3
+		subwin_x = int(x/3)
 
 		self.wins = []
 
 		self.wins.append( terminal_video_buffer_t(self.stdscr.subwin(y, subwin_x, 0, subwin_x*0)) )
-		self.wins.append( terminal_video_buffer_t(self.stdscr.subwin(y - (y/4)*3, subwin_x, (y/4)*3, subwin_x*1)) )
+		self.wins.append( terminal_video_buffer_t(self.stdscr.subwin(y - int(y/4)*3, subwin_x, int(y/4)*3, subwin_x*1)) )
 		self.wins.append( terminal_video_buffer_t(self.stdscr.subwin(y, subwin_x, 0, subwin_x*2)) )
-		self.wins.append( terminal_video_buffer_t(self.stdscr.subwin((y/4)*3, subwin_x, 0, subwin_x*1)) )
+		self.wins.append( terminal_video_buffer_t(self.stdscr.subwin(int(y/4)*3, subwin_x, 0, subwin_x*1)) )
 
 	def set_cpu (self, cpu):
 		self.cpu = cpu
@@ -191,14 +191,14 @@ class memory_t:
 	def write (self, addr, value):
 		if addr >= self.size:
 			self.dprint("memory write addr "+str(addr)+" out of bounds")
-			cpu.cpu_alive = False
+			self.cpu.cpu_alive = False
 		else:
 			self.data[addr] = value
 
 	def read (self, addr):
 		if addr >= self.size:
 			self.dprint("memory read addr "+str(addr)+" out of bounds")
-			cpu.cpu_alive = False
+			self.cpu.cpu_alive = False
 			return 0
 		else:
 			return self.data[addr]
