@@ -16,7 +16,7 @@ class os_t:
 		self.terminal.console_print("this is the console, type the commands here\n")
 
 	def printk(self, msg):
-		self.terminal.kernel_print("kernel: " + msg + "\n")
+		self.terminal.kernel_print("\n" + "kernel: " + msg)
 
 	def panic (self, msg):
 		self.terminal.end()
@@ -109,8 +109,16 @@ class os_t:
 	def handle_interrupt (self, interrupt):
 		if interrupt == pycfg.INTERRUPT_KEYBOARD:
 			self.interrupt_keyboard()
+			self.printk(f'{interrupt}:(Keybord) interrupt')
+		elif interrupt == pycfg.INTERRUPT_MEMORY_PROTECTION_FAULT:
+			self.printk(f'{interrupt}:(Memory fault) interrupt not implemented')
+		elif interrupt == pycfg.INTERRUPT_TIMER:
+			self.printk(f'{interrupt}:(Timer) interrupt not implemented')
+		else:
+			self.printk('Interrupt not implemented')
 		return
 
 	def syscall (self):
+		self.printk('Syscall not implemented')
 		#self.terminal.app_print(msg)
 		return
