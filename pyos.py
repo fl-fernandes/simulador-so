@@ -114,3 +114,10 @@ class os_t:
 	def syscall (self):
 		#self.terminal.app_print(msg)
 		return
+
+class process_t:
+	def __init__(self, name):
+		self.regs = [0,0,0,0,0,0,0,0]
+		self.reg_pc = 0
+		self.state = 0
+		self.name = name
