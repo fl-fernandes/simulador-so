@@ -319,6 +319,7 @@ class cpu_t:
 		self.dprint("Execute inst")
 		self.dprint(str(self.decoded_inst))
 		
+		# type R instructions
 		if self.decoded_inst['type'] == 0:
 			# add
 			if self.decoded_inst['opcode'] == 0:
@@ -376,11 +377,12 @@ class cpu_t:
 				if self.sim_mode_os == 1:
 					self.os.syscall()
 				else:
-					fake_syscall_handler(self);
+					fake_syscall_handler(self)
 			
 			else:
 				self.dprint("opcode " + str(self.decoded_inst['opcode']) + " invalido tipo R")
 				self.cpu_alive = False
+		# type I instructions 
 		elif self.decoded_inst['type'] == 1:
 			# jump
 			if self.decoded_inst['opcode'] == 0:
