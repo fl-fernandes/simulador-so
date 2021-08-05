@@ -115,7 +115,7 @@ class os_t:
 		# Atualizar estado do processo
 		# Escrever no processador os registradores que configuram a memoria virtual, salvos na task struct
 
-		for i in task.regs:
+		for i in range (len(task.regs)):
 			self.cpu.set_reg(i, task.regs[i])
 
 		self.cpu.set_pc(task.reg_pc)
@@ -254,8 +254,8 @@ class os_t:
 
 			self.memory_offset = task.paddr_offset
 
-			for i in range (self.memory_offset, task.padrr_max):
-				self.memory.data[i] = 0x0000
+			for i in range (self.memory_offset, task.paddr_max):
+				self.memory.write(i, 0x0000)
 
 		# TODO
 		# Implementar aqui as outras chamadas de sistema
