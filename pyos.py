@@ -194,11 +194,15 @@ class os_t:
 		if task is not self.current_task:
 			self.panic("task "+task.bin_name+" must be the current_task for being scheduled (current_task = "+self.current_task.bin_name+")")
 
-		# TODO
 		# Salvar na task struct
 		# - registradores de proposito geral
+		for i in range(0,8):
+			task.regs[i] = self.cpu.get_reg(i)
+
 		# - PC
+		task.reg_pc = self.cpu.get_pc()
 		# Atualizar o estado do processo
+		task.state = PYOS_TASK_STATE_READY
 
 		self.current_task = None
 		self.printk("unscheduling task "+task.bin_name)
@@ -266,8 +270,17 @@ class os_t:
 
 		# TODO
 		# Implementar aqui as outras chamadas de sistema
+
 		elif service == 1:
 			self.print_string_service(task, self.cpu.get_reg(1))
+
+		# new line printing service
+		elif service == 2:
+			self.terminal.app_print("\n")
+
+		# number printing service
+		elif service == 3:
+			self.terminal.app_print(str(self.cpu.get_reg(1)))
 		
 		else:
 			self.handle_gpf("invalid syscall "+str(service))
