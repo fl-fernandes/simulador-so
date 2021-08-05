@@ -108,7 +108,7 @@ class os_t:
 			self.panic("current_task must be None when scheduling a new one (current_task="+self.current_task.bin_name+")")
 		if task.state != PYOS_TASK_STATE_READY:
 			self.panic("task "+task.bin_name+" must be in READY state for being scheduled (state = "+str(task.state)+")")
-
+		
 		# TODO
 		# Escrever no processador os registradores de proposito geral salvos na task struct
 		# Escrever no processador o PC salvo na task struct
@@ -128,7 +128,12 @@ class os_t:
 	def allocate_contiguos_physical_memory_to_task (self, words, task):
 		# TODO
 		# Localizar um bloco de memoria livre para armazenar o processo
-		# Retornar tupla <primeiro endereco livre>, <ultimo endereco livre>
+		paddr_offset = 0
+		paddr_max = paddr_offset + words
+
+		# Retornar tupla <primeiro endereco livre>, <ultimo endereco livre>		
+		if paddr_max < self.memory.get_size() - 1:
+			return paddr_offset, paddr_max
 
 		# if we get here, there is no free space to put the task
  
