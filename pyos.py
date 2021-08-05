@@ -57,7 +57,6 @@ class os_t:
 		task.bin_size = os.path.getsize(bin_name) / 2 # 2 bytes = 1 word
 
 		task.paddr_offset, task.paddr_max = self.allocate_contiguos_physical_memory_to_task(task.bin_size, task)
-
 		if task.paddr_offset == -1:
 			return None
 
@@ -108,7 +107,7 @@ class os_t:
 			self.panic("current_task must be None when scheduling a new one (current_task="+self.current_task.bin_name+")")
 		if task.state != PYOS_TASK_STATE_READY:
 			self.panic("task "+task.bin_name+" must be in READY state for being scheduled (state = "+str(task.state)+")")
-
+		
 		# TODO
 		# Escrever no processador os registradores de proposito geral salvos na task struct
 		# Escrever no processador o PC salvo na task struct
@@ -238,6 +237,27 @@ class os_t:
 		else:
 			self.panic("invalid interrupt "+str(interrupt))
 
+	# Load data from memory
+	def load_data_from_memory(self, task, vaddr):
+		if (self.check_valid_vaddr(task, vaddr)):
+			paddr = self.virtual_to_physical_addr(task, vaddr)
+			return self.memory.read(paddr)
+		
+		return self.handle_gpf("invalid memory address")
+
+	def print_string_service(self, task, str_vaddr):
+		string = ""
+			
+		while True:
+			value = self.load_data_from_memory(task, str_vaddr)
+
+			if not value:
+				break
+
+			string += chr(value) 
+			str_vaddr += 1
+		self.terminal.app_print(string)
+
 	def syscall (self):
 		service = self.cpu.get_reg(0)
 		task = self.current_task
@@ -250,6 +270,10 @@ class os_t:
 
 		# TODO
 		# Implementar aqui as outras chamadas de sistema
+
+		elif service == 1:
+			self.print_string_service(task, self.cpu.get_reg(1))
+
 		# new line printing service
 		elif service == 2:
 			self.terminal.app_print("\n")
