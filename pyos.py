@@ -60,7 +60,6 @@ class os_t:
 		task.bin_size = os.path.getsize(bin_name) / 2 # 2 bytes = 1 word
 
 		task.paddr_offset, task.paddr_max = self.allocate_contiguos_physical_memory_to_task(task.bin_size, task)
-
 		if task.paddr_offset == -1:
 			return None
 
@@ -121,6 +120,14 @@ class os_t:
 		# Atualizar estado do processo
 		task.state = PYOS_TASK_STATE_EXECUTING
 		# Escrever no processador os registradores que configuram a memoria virtual, salvos na task struct
+		self.cpu.set_paddr_offset(task.paddr_offset)
+		self.cpu.set_paddr_max(task.paddr_max)
+
+		for i in range (len(task.regs)):
+			self.cpu.set_reg(i, task.regs[i])
+
+		self.cpu.set_pc(task.reg_pc)
+		task.state = PYOS_TASK_STATE_EXECUTING
 		self.cpu.set_paddr_offset(task.paddr_offset)
 		self.cpu.set_paddr_max(task.paddr_max)
 
@@ -213,15 +220,14 @@ class os_t:
 		if task is not self.current_task:
 			self.panic("task "+task.bin_name+" must be the current_task for being scheduled (current_task = "+self.current_task.bin_name+")")
 
-		# TODO
 		# Salvar na task struct
 		# - registradores de proposito geral
-		for i in range(len(self.cpu.regs)):
+		for i in range(0,8):
 			task.regs[i] = self.cpu.get_reg(i)
+
 		# - PC
 		task.reg_pc = self.cpu.get_pc()
 		# Atualizar o estado do processo
-		
 		task.state = PYOS_TASK_STATE_READY
 
 		self.current_task = None
@@ -258,6 +264,27 @@ class os_t:
 		else:
 			self.panic("invalid interrupt "+str(interrupt))
 
+	# Load data from memory
+	def load_data_from_memory(self, task, vaddr):
+		if (self.check_valid_vaddr(task, vaddr)):
+			paddr = self.virtual_to_physical_addr(task, vaddr)
+			return self.memory.read(paddr)
+		
+		return self.handle_gpf("invalid memory address")
+
+	def print_string_service(self, task, str_vaddr):
+		string = ""
+			
+		while True:
+			value = self.load_data_from_memory(task, str_vaddr)
+
+			if not value:
+				break
+
+			string += chr(value) 
+			str_vaddr += 1
+		self.terminal.app_print(string)
+
 	def syscall (self):
 		service = self.cpu.get_reg(0)
 		task = self.current_task
@@ -268,8 +295,24 @@ class os_t:
 			self.terminate_unsched_task(task)
 			self.sched(self.idle_task)
 
+			self.memory_offset = task.paddr_offset
+
+			for i in range (self.memory_offset, task.paddr_max):
+				self.memory.write(i, 0x0000)
+
 		# TODO
 		# Implementar aqui as outras chamadas de sistema
+
+		elif service == 1:
+			self.print_string_service(task, self.cpu.get_reg(1))
+
+		# new line printing service
+		elif service == 2:
+			self.terminal.app_print("\n")
+
+		# number printing service
+		elif service == 3:
+			self.terminal.app_print(str(self.cpu.get_reg(1)))
 		
 		else:
 			self.handle_gpf("invalid syscall "+str(service))
