@@ -29,6 +29,9 @@ class os_t:
 
 		self.console_str = ""
 
+		self.memory_offset = 0
+		self.memory_max = self.memory.get_size() - 1
+
 		self.the_task = None
 		self.next_task_id = 0
 
@@ -111,9 +114,15 @@ class os_t:
 		
 		# TODO
 		# Escrever no processador os registradores de proposito geral salvos na task struct
+		for i in range(len(task.regs)):
+			self.cpu.set_reg(i, task.regs[i])
 		# Escrever no processador o PC salvo na task struct
+		self.cpu.set_pc(task.reg_pc)
 		# Atualizar estado do processo
+		task.state = PYOS_TASK_STATE_EXECUTING
 		# Escrever no processador os registradores que configuram a memoria virtual, salvos na task struct
+		self.cpu.set_paddr_offset(task.paddr_offset)
+		self.cpu.set_paddr_max(task.paddr_max)
 
 		self.current_task = task
 		self.printk("scheduling task "+task.bin_name)
@@ -128,13 +137,17 @@ class os_t:
 	def allocate_contiguos_physical_memory_to_task (self, words, task):
 		# TODO
 		# Localizar um bloco de memoria livre para armazenar o processo
-		paddr_offset = 0
+
+		paddr_offset = self.memory_offset 
 		paddr_max = paddr_offset + words
 
-		# Retornar tupla <primeiro endereco livre>, <ultimo endereco livre>		
-		if paddr_max < self.memory.get_size() - 1:
-			return paddr_offset, paddr_max
+		# Retornar tupla <primeiro endereco livre>, <ultimo endereco livre>
 
+		if paddr_max < self.memory_max:
+			self.memory_offset = paddr_offset + 1
+
+			return paddr_offset, paddr_max 
+	
 		# if we get here, there is no free space to put the task
  
 		self.printk("could not allocate memory to task "+task.bin_name)
@@ -203,10 +216,16 @@ class os_t:
 		# TODO
 		# Salvar na task struct
 		# - registradores de proposito geral
+		for i in range(len(self.cpu.regs)):
+			task.regs[i] = self.cpu.get_reg(i)
 		# - PC
+		task.reg_pc = self.cpu.get_pc()
 		# Atualizar o estado do processo
+		
+		task.state = PYOS_TASK_STATE_READY
 
 		self.current_task = None
+
 		self.printk("unscheduling task "+task.bin_name)
 
 	def virtual_to_physical_addr (self, task, vaddr):
