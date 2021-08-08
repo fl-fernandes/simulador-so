@@ -151,7 +151,7 @@ class os_t:
 		# Retornar tupla <primeiro endereco livre>, <ultimo endereco livre>
 
 		if paddr_max < self.memory_max:
-			self.memory_offset = paddr_offset + 1
+			self.memory_offset = paddr_max + 1
 
 			return paddr_offset, paddr_max 
 	
